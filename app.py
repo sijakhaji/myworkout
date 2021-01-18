@@ -17,16 +17,15 @@ def my_project():
 # 주문하기(POST) API
 @app.route('/workout', methods=['POST'])
 def save_workout():
+    date_receive = request.form['date_give']
     part_receive = request.form['part_give']
     part2_receive = request.form['part2_give']
     weight_receive = request.form['weight_give']
     count_receive = request.form['count_give']
     total_receive = request.form['total_give']
 
-    print(part_receive, part2_receive, weight_receive, count_receive, total_receive)
-
-
     order = {
+        'date': date_receive,
         'part': part_receive,
         'part2': part2_receive,
         'weight': weight_receive,
@@ -39,6 +38,23 @@ def save_workout():
     return jsonify({'result': 'success'})
 
 
+# 삭제 함수
+@app.route('/delete', methods=['POST'])
+def delete_workout():
+    date_receive = request.form['date_give']
+    part_receive = request.form['part_give']
+    part2_receive = request.form['part2_give']
+    weight_receive = request.form['weight_give']
+    count_receive = request.form['count_give']
+    total_receive = request.form['total_give']
+
+    db.my_project.delete_one(
+        {'date': date_receive, 'part': part_receive, 'part2': part2_receive, 'weight': weight_receive,
+         'count': count_receive, 'total': total_receive})
+
+    return jsonify({'result': 'success'})
+
+
 # 주문 목록보기(Read) API
 @app.route('/workout', methods=['GET'])
 def view_orders():
@@ -46,7 +62,6 @@ def view_orders():
     # print(orders)
 
     return jsonify({'result': 'success', 'orders': orders})
-
 
 
 if __name__ == '__main__':

@@ -60,18 +60,20 @@
         </style>
 
         <script>
-
             $(document).ready(function () {
                 $("#workout-box").html("");
                 showworkout();
             });
 
             function workoutOrders() {
+                let date = $('#post-date').val();
                 let part = $('#workout_part').val();
                 let part2 = $('#workout_part2').val();
                 let weight = $('#workout_weight').val();
                 let count = $('#workout_count').val();
-                let total = $('#workout_total').val()
+                let Cototal = weight * count
+                let total = Cototal
+                // let total = $('#workout_total').val()
 
                 if (part == '') {
                     alert('운동부위를 선택해주세요')
@@ -95,6 +97,7 @@
                     type: "POST",
                     url: "/workout",
                     data: {
+                        date_give: date,
                         part_give: part,
                         part2_give: part2,
                         weight_give: weight,
@@ -118,7 +121,6 @@
             }
 
 
-
             function showworkout() {
                 // 1. 리뷰 목록을 서버에 요청하기
 
@@ -136,7 +138,7 @@
 
                             // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
                             for (let i = 0; i < orders.length; i++) {
-                                workoutOrderRow(orders[i]["part"], orders[i]["part2"], orders[i]["weight"], orders[i]["count"], orders[i]["total"] );
+                                workoutOrderRow(orders[i]["date"], orders[i]["part"], orders[i]["part2"], orders[i]["weight"], orders[i]["count"], orders[i]["total"]);
                             }
                         } else {
                             alert("운동결과를 받아오지 못했습니다");
@@ -145,24 +147,43 @@
                 })
             }
 
-            function workoutOrderRow(part, part2, weight, count, total) {
-                console.log('working')
+            function workoutOrderRow(date, part, part2, weight, count, total) {
                 let tempHtml = `<tr>
+                                <td>${date}</td>
                                 <td>${part}</td>
                                 <td>${part2}</td>
                                 <td>${weight}</td>
                                 <td>${count}</td>
                                 <td>${total}</td>
+                                <td> <button onclick="delete_data('${date}','${part}','${part2}','${weight}','${count}','${total}')" type="button" class="btn btn-light">삭제하기</button> </td>
                               </tr>`;
-                console.log(tempHtml);
                 $("#workout-box").append(tempHtml);
+
             }
+
+            function delete_data(date, part, part2, weight, count, total) {
+                $.ajax({
+                    type: "POST",
+                    url: "/delete",
+                    data: {
+                        date_give: date,
+                        part_give: part,
+                        part2_give: part2,
+                        weight_give: weight,
+                        count_give: count,
+                        total_give: total
+                    },
+                    success: function (response) {
+                    }
+                })
+            }
+
 
             function calculate() {
                 let weigt = $('#workout_weight').val();
                 let count = $('#workout_count').val();
-                let total = weigt * count
-                let calTotal = `<li> ${total} </li>`
+                let Cototal = weigt * count
+                let calTotal = `<li> ${Cototal} </li>`
                 $('#workout_total').append(calTotal);
             }
         </script>
@@ -174,6 +195,11 @@
                 <h1>나만의 운동일지</h1>
                 <p>나의 운동을 기록하는 곳입니다. 운동량을 입력하고 운동량 확인을 위한 것입니다.</p>
                 <p> 운동 좀 꾸준히 하자 </p>
+                <form><input type="date" class="form-control" id="post-date"></form>
+                <script>
+                    document.getElementById('post-date').value = new Date().toISOString().substring(0, 10);
+                </script>
+                <p></p>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <label class="input-group-text">운동부위</label>
@@ -181,8 +207,8 @@
                     <select class="custom-select" id="workout_part">
                         <option selected value=""> -- 운동부위를 선택하세요 --</option>
                         <option value="PUSH">PUSH</option>
-                        <option value="2">PULL</option>
-                        <option value="3">LEG</option>
+                        <option value="PULL">PULL</option>
+                        <option value="LEG">LEG</option>
                     </select>
                 </div>
                 <div class="input-group mb-3">
@@ -204,7 +230,7 @@
                     <input type="text" class="form-control" id="workout_count">
                 </div>
                 <div class="order">
-                <button onclick="calculate()" type="button" class="btn btn-light">계산하기</button>
+                    <button onclick="calculate()" type="button" class="btn btn-light">계산하기</button>
                 </div>
                 <div class="input-group mb-3">
                     총 운동량 :
@@ -235,9 +261,6 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        <td>
-                            <button onclick="delete_data()" type="button" class="btn btn-light">삭제하기</button>
-                        </td>
                     </tr>
                     </tbody>
                 </table>
