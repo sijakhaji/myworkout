@@ -71,6 +71,7 @@
                 let part2 = $('#workout_part2').val();
                 let weight = $('#workout_weight').val();
                 let count = $('#workout_count').val();
+                let total = $('#workout_total').val()
 
                 if (part == '') {
                     alert('운동부위를 선택해주세요')
@@ -89,32 +90,40 @@
                     $('#workout_count').focus()
                     return
                 }
-            }
+
                 $.ajax({
                     type: "POST",
                     url: "/workout",
                     data: {
-                        part_receive: part,
-                        part2_receive: part2,
-                        weight_receive: weight,
-                        count_receive: count,
-                        total_receive: total
+                        part_give: part,
+                        part2_give: part2,
+                        weight_give: weight,
+                        count_give: count,
+                        total_give: total
                     },
                     success: function (response) {
-                        if (response['result'] == 'success') {
-                            let orders = response['orders'];
-                            for (let i = 0; i < orders.length; i++) {
-                                workoutOrderRow(orders[i]['part'], orders[i]['part2'], orders[i]['weight'], orders[i]['count'], orders[i]['total'])
-                            }
-                        } else {
-                            alert('주문을 받아오지 못했습니다');
-                        }
+                        // if (response['result'] == 'success') {
+                        //     let orders = response['orders'];
+                        //
+                        //     console.log(orders)
+                        //
+                        //     for (let i = 0; i < orders.length; i++) {
+                        //         workoutOrderRow(orders[i]['part'], orders[i]['part2'], orders[i]['weight'], orders[i]['count'], orders[i]['total'])
+                        //     }
+                        // } else {
+                        //     alert('주문을 받아오지 못했습니다');
+                        // }
                     }
                 })
+            }
+
 
 
             function showworkout() {
                 // 1. 리뷰 목록을 서버에 요청하기
+
+                // console.log('working');
+
                 $.ajax({
                     type: "GET",
                     url: "/workout",
@@ -123,6 +132,8 @@
                         // 2. 요청 성공 여부 확인하기
                         if (response["result"] == "success") {
                             let orders = response["orders"];
+                            // console.log(orders);
+
                             // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
                             for (let i = 0; i < orders.length; i++) {
                                 workoutOrderRow(orders[i]["part"], orders[i]["part2"], orders[i]["weight"], orders[i]["count"], orders[i]["total"] );
@@ -135,6 +146,7 @@
             }
 
             function workoutOrderRow(part, part2, weight, count, total) {
+                console.log('working')
                 let tempHtml = `<tr>
                                 <td>${part}</td>
                                 <td>${part2}</td>
@@ -142,6 +154,7 @@
                                 <td>${count}</td>
                                 <td>${total}</td>
                               </tr>`;
+                console.log(tempHtml);
                 $("#workout-box").append(tempHtml);
             }
 
@@ -167,7 +180,7 @@
                     </div>
                     <select class="custom-select" id="workout_part">
                         <option selected value=""> -- 운동부위를 선택하세요 --</option>
-                        <option value="1">PUSH</option>
+                        <option value="PUSH">PUSH</option>
                         <option value="2">PULL</option>
                         <option value="3">LEG</option>
                     </select>

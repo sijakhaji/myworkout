@@ -43,6 +43,8 @@ def save_workout():
 @app.route('/workout', methods=['GET'])
 def view_orders():
     orders = list(db.my_project.find({}, {'_id': 0}))
+    # print(orders)
+
     return jsonify({'result': 'success', 'orders': orders})
 
 
