@@ -12,26 +12,17 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
               integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
               crossorigin="anonymous">
-        <!-- Calendar -->
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-        <script type="text/javascript"
-                src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
-        <script type="text/javascript"
-                src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
-        <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css"/>
-        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.css"/>
         <!-- JS -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
                 integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
                 crossorigin="anonymous"></script>
-
         <!-- 구글폰트 -->
         <link rel="preconnect" href="https://fonts.gstatic.com">
         <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
         <style type="text/css">
+
             * {
                 font-family: 'Jua', sans-serif;
             }
@@ -71,14 +62,15 @@
         <script>
 
             $(document).ready(function () {
+                $("#workout-box").html("");
+                showworkout();
             });
 
-            function workout() {
+            function workoutOrders() {
                 let part = $('#workout_part').val();
                 let part2 = $('#workout_part2').val();
-                let weigt = $('#workout_weight').val();
+                let weight = $('#workout_weight').val();
                 let count = $('#workout_count').val();
-                let total = $('#workout_total').val();
 
                 if (part == '') {
                     alert('운동부위를 선택해주세요')
@@ -86,9 +78,9 @@
                     return
                 } else if (part2 == '') {
                     alert('운동부위를 입력해주세요')
-                    $('#workout_part').focus()
+                    $('#workout_part2').focus()
                     return
-                } else if (weigt == '') {
+                } else if (weight == '') {
                     alert('운동무게를 입력해주세요')
                     $('#workout_weight').focus()
                     return
@@ -96,30 +88,70 @@
                     alert('운동 횟수를 입력해주세요')
                     $('#workout_count').focus()
                     return
-                } else if (total == '') {
-                    alert('운동 횟수를 입력해주세요')
-                    $('#workout_total').focus()
-                    return
                 }
             }
+                $.ajax({
+                    type: "POST",
+                    url: "/workout",
+                    data: {
+                        part_receive: part,
+                        part2_receive: part2,
+                        weight_receive: weight,
+                        count_receive: count,
+                        total_receive: total
+                    },
+                    success: function (response) {
+                        if (response['result'] == 'success') {
+                            let orders = response['orders'];
+                            for (let i = 0; i < orders.length; i++) {
+                                workoutOrderRow(orders[i]['part'], orders[i]['part2'], orders[i]['weight'], orders[i]['count'], orders[i]['total'])
+                            }
+                        } else {
+                            alert('주문을 받아오지 못했습니다');
+                        }
+                    }
+                })
 
-            function work_calculate() {
+
+            function showworkout() {
+                // 1. 리뷰 목록을 서버에 요청하기
+                $.ajax({
+                    type: "GET",
+                    url: "/workout",
+                    data: {},
+                    success: function (response) {
+                        // 2. 요청 성공 여부 확인하기
+                        if (response["result"] == "success") {
+                            let orders = response["orders"];
+                            // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
+                            for (let i = 0; i < orders.length; i++) {
+                                workoutOrderRow(orders[i]["part"], orders[i]["part2"], orders[i]["weight"], orders[i]["count"], orders[i]["total"] );
+                            }
+                        } else {
+                            alert("운동결과를 받아오지 못했습니다");
+                        }
+                    }
+                })
+            }
+
+            function workoutOrderRow(part, part2, weight, count, total) {
+                let tempHtml = `<tr>
+                                <td>${part}</td>
+                                <td>${part2}</td>
+                                <td>${weight}</td>
+                                <td>${count}</td>
+                                <td>${total}</td>
+                              </tr>`;
+                $("#workout-box").append(tempHtml);
+            }
+
+            function calculate() {
                 let weigt = $('#workout_weight').val();
                 let count = $('#workout_count').val();
                 let total = weigt * count
-                return total
+                let calTotal = `<li> ${total} </li>`
+                $('#workout_total').append(calTotal);
             }
-
-            $(function () {
-                $('#datetimepicker1').datetimepicker({format: 'L'});
-                $('#datetimepicker2').datetimepicker({format: 'L', useCurrent: false});
-                $("#datetimepicker1").on("change.datetimepicker", function (e) {
-                    $('#datetimepicker2').datetimepicker('minDate', e.date);
-                });
-                $("#datetimepicker2").on("change.datetimepicker", function (e) {
-                    $('#datetimepicker1').datetimepicker('maxDate', e.date);
-                });
-            });
         </script>
     </head>
     <body>
@@ -129,17 +161,6 @@
                 <h1>나만의 운동일지</h1>
                 <p>나의 운동을 기록하는 곳입니다. 운동량을 입력하고 운동량 확인을 위한 것입니다.</p>
                 <p> 운동 좀 꾸준히 하자 </p>
-                <div class='col-md-3 col-xs-4'>
-                    <div class="form-group">
-                        <div class="input-group date" id="datetimepicker1" data-target-input="nearest"><input
-                                type="text" class="form-control datetimepicker-input" data-target="#datetimepicker1"
-                                value="01/11/2020">
-                            <div class="input-group-append" data-target="#datetimepicker1" data-toggle="datetimepicker">
-                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <label class="input-group-text">운동부위</label>
@@ -169,14 +190,15 @@
                     </div>
                     <input type="text" class="form-control" id="workout_count">
                 </div>
+                <div class="order">
+                <button onclick="calculate()" type="button" class="btn btn-light">계산하기</button>
+                </div>
                 <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">총 운동량</span>
-                    </div>
-                    <input type="text" class="form-control" id="workout_total">
+                    총 운동량 :
+                    <ul id="workout_total"></ul>
                 </div>
                 <div class="order">
-                    <button onclick="workout()" type="button" class="btn btn-light">입력하기</button>
+                    <button onclick="workoutOrders()" type="button" class="btn btn-light">입력하기</button>
                 </div>
             </div>
             <div class="orders">
@@ -190,19 +212,18 @@
                         <th scope="col">횟수</th>
                         <th scope="col">총 운동량</th>
                         <th scope="col">기타</th>
-
                     </tr>
                     </thead>
-                    <tbody id="orders-box">
+                    <tbody id="workout-box">
                     <tr>
-                        <td>1월 6일</td>
-                        <td>PUSH</td>
-                        <td>벤치프레스</td>
-                        <td>60</td>
-                        <td>3</td>
-                        <td>180</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                         <td>
-                            <button onclick="delete()" type="button" class="btn btn-light">삭제하기</button>
+                            <button onclick="delete_data()" type="button" class="btn btn-light">삭제하기</button>
                         </td>
                     </tr>
                     </tbody>
